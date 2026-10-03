@@ -3,7 +3,7 @@
 Music News Ecosystem — Telegram Bot
 ====================================
 Features:
-  • Deep-link handler: t.me/Bot?start=track_{iTunesID}
+  • Deep-link handler: t.me/{BOT_USERNAME}?start=track_{iTunesID}
   • Fetches high-res 600×600 artwork + 30s preview via iTunes Lookup API
   • Daily in-memory CSV backups of Supabase tables → private Telegram channel
   • APScheduler + pytz for timezone-aware cron jobs
@@ -12,6 +12,7 @@ Features:
 Environment variables required:
   TELEGRAM_BOT_TOKEN
   TELEGRAM_BACKUP_CHANNEL_ID   (e.g. -1001234567890)
+  BOT_USERNAME                 (optional, default "YourMusicNewsBot")
   SUPABASE_URL
   SUPABASE_KEY                 (service_role preferred for full table access)
   BACKUP_TZ                    (optional, default "UTC")
@@ -63,6 +64,7 @@ logger = logging.getLogger("music-news-bot")
 # ─────────────────────────────────────────────────────────────
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 BACKUP_CHANNEL_ID = int(os.environ["TELEGRAM_BACKUP_CHANNEL_ID"])
+BOT_USERNAME = os.environ.get("BOT_USERNAME", "YourMusicNewsBot")
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 
@@ -177,7 +179,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "Open a track card in the Mini App and tap <b>Open in Telegram Bot</b> "
             "to receive a rich metadata card with high-res artwork and a 30-second preview.\n\n"
             "Deep-link format:\n"
-            "<code>t.me/YourBot?start=track_ITUNES_ID</code>",
+            f"<code>t.me/{BOT_USERNAME}?start=track_ITUNES_ID</code>",
             parse_mode=ParseMode.HTML,
         )
         return
@@ -250,7 +252,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 def table_to_csv_bytes(rows: list[dict[str, Any]]) -> bytes:
     """Serialize a list of dicts to CSV bytes (in-memory)."""
     if not rows:
-        # Empty table → header-only CSV with a note
         buf = io.StringIO()
         buf.write("# empty table\n")
         return buf.getvalue().encode("utf-8")
@@ -260,7 +261,6 @@ def table_to_csv_bytes(rows: list[dict[str, Any]]) -> bytes:
     writer = csv.DictWriter(buf, fieldnames=fieldnames, extrasaction="ignore")
     writer.writeheader()
     for row in rows:
-        # Convert non-serialisable values
         clean = {}
         for k, v in row.items():
             if isinstance(v, (dict, list)):
@@ -300,13 +300,6 @@ async def fetch_table(table: str) -> list[dict[str, Any]]:
 
 
 async def run_daily_backup(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Scheduled job:
-      1. For each configured table → fetch all rows
-      2. Convert to CSV in-memory (BytesIO)
-      3. Post document to private backup channel with timestamped caption
-      4. Log success/failure into backup_logs (best-effort)
-    """
     bot = context.bot
     tz = pytz.timezone(BACKUP_TZ)
     now = datetime.now(tz)
@@ -327,7 +320,6 @@ async def run_daily_backup(context: ContextTypes.DEFAULT_TYPE) -> None:
                 f"📊 Rows: {len(rows)}"
             )
 
-            # In-memory file — never touches disk
             bio = io.BytesIO(csv_bytes)
             bio.name = filename
 
@@ -339,7 +331,6 @@ async def run_daily_backup(context: ContextTypes.DEFAULT_TYPE) -> None:
             )
             logger.info("Backed up %s (%d rows)", table, len(rows))
 
-            # Best-effort log entry
             try:
                 supabase.table("backup_logs").insert(
                     {
@@ -350,7 +341,7 @@ async def run_daily_backup(context: ContextTypes.DEFAULT_TYPE) -> None:
                     }
                 ).execute()
             except Exception:
-                pass  # logging table may not exist yet
+                pass
 
         except Exception as exc:
             logger.exception("Backup failed for table %s: %s", table, exc)
@@ -373,11 +364,8 @@ async def run_daily_backup(context: ContextTypes.DEFAULT_TYPE) -> None:
 # Admin / utility commands
 # ─────────────────────────────────────────────────────────────
 async def backup_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Manual trigger: /backup_now (restricted to private chats or admins)."""
     if not update.effective_user:
         return
-    # Simple guard – only allow in private chat with the bot owner
-    # (extend with admin list as needed)
     await update.effective_message.reply_text("⏳ Running backup now…")
     await run_daily_backup(context)
     await update.effective_message.reply_text("✅ Backup job finished. Check the private channel.")
@@ -403,32 +391,15 @@ def main() -> None:
         .build()
     )
 
-    # Handlers
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("backup_now", backup_now))
 
-    # Scheduler – daily backup
     scheduler = AsyncIOScheduler(timezone=BACKUP_TZ)
-    scheduler.add_job(
-        run_daily_backup,
-        trigger=CronTrigger(
-            hour=BACKUP_HOUR,
-            minute=BACKUP_MINUTE,
-            timezone=BACKUP_TZ,
-        ),
-        args=[app],  # context-like object; we only need .bot
-        id="daily_supabase_backup",
-        replace_existing=True,
-    )
 
-    # Monkey-patch a minimal context so the job can call context.bot
     class _JobContext:
         def __init__(self, bot):
             self.bot = bot
-
-    # Re-bind the job with a proper context factory
-    scheduler.remove_job("daily_supabase_backup")
 
     async def _scheduled_backup():
         await run_daily_backup(_JobContext(app.bot))
@@ -451,7 +422,6 @@ def main() -> None:
         BACKUP_TZ,
     )
 
-    # Run polling (Render Background Worker friendly)
     logger.info("Bot starting (polling)…")
     app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 

@@ -10,6 +10,7 @@ Endpoints:
   GET  /api/track/<itunes_id>
   GET  /api/track/<itunes_id>/preview
   GET  /api/track/<itunes_id>/preview/stream
+  GET  /api/spotify/track/<spotify_id_or_url>
   POST /api/ingest/charts
   GET  /api/news
   GET  /api/releases
@@ -21,6 +22,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from datetime import date, datetime
 from typing import Any, Optional
 
@@ -70,6 +72,55 @@ def itunes_lookup(itunes_id: int) -> Optional[dict[str, Any]]:
         r.raise_for_status()
         results = r.json().get("results") or []
         return results[0] if results else None
+
+
+def fetch_spotify_metadata(spotify_id_or_url: str) -> Optional[dict[str, Any]]:
+    """Scrapes track metadata from Spotify without requiring an official API key."""
+    # Extract 22-character Spotify track ID from URL or raw ID
+    match = re.search(r"track/([a-zA-Z0-9]{22})", spotify_id_or_url)
+    track_id = match.group(1) if match else spotify_id_or_url.strip()
+
+    embed_url = f"https://open.spotify.com/embed/track/{track_id}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+
+    try:
+        with httpx.Client(timeout=10.0, headers=headers, follow_redirects=True) as client:
+            resp = client.get(embed_url)
+            if resp.status_code != 200:
+                return None
+
+            # Extract json resource embedded in open.spotify.com
+            match = re.search(r'<script id="session" type="application/json">(.*?)</script>', resp.text, re.DOTALL)
+            if not match:
+                match = re.search(r'<script id="initial-state" type="application/json">(.*?)</script>', resp.text, re.DOTALL)
+
+            if match:
+                import json
+                data = json.loads(match.group(1))
+                return {
+                    "spotify_id": track_id,
+                    "raw": data
+                }
+
+            # Fallback to oEmbed metadata standard
+            oembed_url = f"https://open.spotify.com/oembed?url=https://open.spotify.com/track/{track_id}"
+            oembed_resp = client.get(oembed_url)
+            if oembed_resp.status_code == 200:
+                oed = oembed_resp.json()
+                return {
+                    "spotify_id": track_id,
+                    "title": oed.get("title"),
+                    "artist": oed.get("author_name"),
+                    "artwork_url": oed.get("thumbnail_url"),
+                    "iframe_url": oed.get("html"),
+                    "source": "spotify_oembed"
+                }
+    except Exception as exc:
+        logger.warning("Spotify metadata scraping failed for %s: %s", spotify_id_or_url, exc)
+    
+    return None
 
 
 def item_to_card(item: dict[str, Any]) -> dict[str, Any]:
@@ -131,6 +182,7 @@ def health():
     return jsonify({
         "status": "ok",
         "supabase": db_ok,
+        "bot_username": BOT_USERNAME,
         "time": datetime.utcnow().isoformat() + "Z",
         "note": "Full music download is NOT supported. Only 30s iTunes previews.",
     })
@@ -138,7 +190,6 @@ def health():
 
 @app.get("/")
 def root():
-    # Prefer Mini App when opened in a browser; API clients use /health or /api/*
     accept = request.headers.get("Accept", "")
     if "text/html" in accept:
         html = _load_index_html()
@@ -148,6 +199,7 @@ def root():
         "service": "Music News Ecosystem API (Flask)",
         "miniapp": "/app",
         "health": "/health",
+        "bot_username": BOT_USERNAME,
         "important": (
             "This backend verifies and streams 30-second iTunes previews only. "
             "Full-song download is not possible with free public APIs."
@@ -190,6 +242,14 @@ def get_track(itunes_id: int):
     if not item:
         return jsonify({"error": f"Track {itunes_id} not found"}), 404
     return jsonify(item_to_card(item))
+
+
+@app.get("/api/spotify/track/<path:spotify_id>")
+def get_spotify_track(spotify_id: str):
+    data = fetch_spotify_metadata(spotify_id)
+    if not data:
+        return jsonify({"error": f"Spotify track '{spotify_id}' metadata could not be fetched"}), 404
+    return jsonify(data)
 
 
 @app.get("/api/track/<int:itunes_id>/preview")
@@ -391,25 +451,20 @@ def db_tables():
     return jsonify(out)
 
 
-
-
-
 def _load_index_html():
     """Load index.html and inject BOT_USERNAME from environment."""
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     if not os.path.isfile(path):
         return None
     html = open(path, "r", encoding="utf-8").read()
-    # Replace placeholder constant
-    html = html.replace(
-        'const BOT_USERNAME = "YourMusicNewsBot"',
-        f'const BOT_USERNAME = "{BOT_USERNAME}"',
-    )
-    html = html.replace(
-        "const BOT_USERNAME = 'YourMusicNewsBot'",
-        f'const BOT_USERNAME = "{BOT_USERNAME}"',
+    # Dynamically inject the runtime BOT_USERNAME variable into frontend
+    html = re.sub(
+        r'const\s+BOT_USERNAME\s*=\s*["\'].*?["\'];?',
+        f'const BOT_USERNAME = "{BOT_USERNAME}";',
+        html
     )
     return html
+
 
 # ── Serve Mini App (same service) ─────────────────────────
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
