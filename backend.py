@@ -34,6 +34,7 @@ logger = logging.getLogger("music-backend")
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*")
+BOT_USERNAME = os.environ.get("BOT_USERNAME", "YourMusicNewsBot")
 
 ITUNES_LOOKUP = "https://itunes.apple.com/lookup"
 APPLE_RSS = "https://rss.applemarketingtools.com/api/v2/us/music/most-played/{limit}/songs.json"
@@ -140,9 +141,9 @@ def root():
     # Prefer Mini App when opened in a browser; API clients use /health or /api/*
     accept = request.headers.get("Accept", "")
     if "text/html" in accept:
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
-        if os.path.isfile(path):
-            return Response(open(path, "r", encoding="utf-8").read(), mimetype="text/html")
+        html = _load_index_html()
+        if html:
+            return Response(html, mimetype="text/html")
     return jsonify({
         "service": "Music News Ecosystem API (Flask)",
         "miniapp": "/app",
@@ -392,6 +393,24 @@ def db_tables():
 
 
 
+
+def _load_index_html():
+    """Load index.html and inject BOT_USERNAME from environment."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+    if not os.path.isfile(path):
+        return None
+    html = open(path, "r", encoding="utf-8").read()
+    # Replace placeholder constant
+    html = html.replace(
+        'const BOT_USERNAME = "YourMusicNewsBot"',
+        f'const BOT_USERNAME = "{BOT_USERNAME}"',
+    )
+    html = html.replace(
+        "const BOT_USERNAME = 'YourMusicNewsBot'",
+        f'const BOT_USERNAME = "{BOT_USERNAME}"',
+    )
+    return html
+
 # ── Serve Mini App (same service) ─────────────────────────
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -401,10 +420,10 @@ STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 @app.get("/miniapp/")
 def serve_miniapp():
     """Telegram Mini App — same Render service as the API."""
-    path = os.path.join(STATIC_DIR, "index.html")
-    if not os.path.isfile(path):
+    html = _load_index_html()
+    if html is None:
         return jsonify({"error": "index.html not found next to backend.py"}), 404
-    return Response(open(path, "r", encoding="utf-8").read(), mimetype="text/html")
+    return Response(html, mimetype="text/html")
 
 
 @app.get("/favicon.ico")
