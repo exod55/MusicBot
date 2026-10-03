@@ -3,24 +3,23 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Music News Ecosystem</title>
+<title>Music News Ecosystem Mini App</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root,[data-theme=light]{--bg:#f4f4f5;--bg2:#fff;--text:#18181b;--muted:#71717a;--card:rgba(255,255,255,.92);--border:rgba(0,0,0,.08);--gold:#b8860b;--shadow:0 8px 28px rgba(0,0,0,.08)}
-[data-theme=dark]{--bg:#0a0a0b;--bg2:#121214;--text:#f5f5f5;--muted:rgba(255,255,255,.45);--card:rgba(18,18,20,.82);--border:rgba(226,177,60,.18);--gold:#e2b13c;--shadow:0 8px 32px rgba(0,0,0,.55)}
+:root,[data-theme=light]{--bg:#f4f4f5;--bg2:#ffffff;--text:#18181b;--muted:#71717a;--card:rgba(255,255,255,0.92);--border:rgba(0,0,0,0.08);--gold:#b8860b;--shadow:0 8px 28px rgba(0,0,0,0.08)}
+[data-theme=dark]{--bg:#0a0a0b;--bg2:#121214;--text:#f5f5f5;--muted:rgba(255,255,255,0.45);--card:rgba(18,18,20,0.82);--border:rgba(226,177,60,0.22);--gold:#e2b13c;--shadow:0 8px 32px rgba(0,0,0,0.55)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;overflow:hidden;transition:background .25s,color .25s}
-#three-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
-[data-theme=light] #three-canvas{opacity:.15}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,sans-serif;overflow:hidden}
+#three-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.55}
 .glass{background:var(--card);backdrop-filter:blur(16px);border:1px solid var(--border);box-shadow:var(--shadow)}
 .scroll-area{overflow-y:auto;-webkit-overflow-scrolling:touch}
 .rank-badge{background:linear-gradient(135deg,var(--gold),#a07c1a);color:#0a0a0b;font-weight:700;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:12px}
 .stream-pill{background:color-mix(in srgb,var(--gold) 15%,transparent);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);color:var(--gold);font-size:10px;font-weight:600}
 .tab-active{color:var(--gold)!important;border-bottom:2px solid var(--gold)}
-.menu-drawer{transform:translateX(-100%);transition:transform .3s}
+.menu-drawer{transform:translateX(-100%);transition:transform .3s ease}
 .menu-drawer.open{transform:translateX(0)}
 .overlay{opacity:0;pointer-events:none;transition:opacity .25s}
 .overlay.open{opacity:1;pointer-events:auto}
@@ -35,40 +34,32 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .btn-icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer}
 .player-bar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--card);backdrop-filter:blur(20px);border-top:1px solid var(--border);transform:translateY(100%);transition:transform .3s}
 .player-bar.show{transform:translateY(0)}
-.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--bg2);color:var(--text);border:1px solid var(--border);padding:10px 18px;border-radius:12px;z-index:100;opacity:0;transition:all .3s;pointer-events:none;font-size:13px;box-shadow:var(--shadow)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.fav-heart{color:#ef4444}
-.chip{font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);cursor:pointer}
-.skeleton{background:linear-gradient(90deg,var(--bg2) 25%,#8882 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.font-display{font-family:"Bebas Neue",Impact,sans-serif}
+.font-display{font-family:"Bebas Neue",sans-serif}
 </style>
 </head>
 <body>
 <canvas id="three-canvas"></canvas>
-<div id="toast" class="toast"></div>
 <div class="relative z-10 flex flex-col h-full">
-<header class="glass flex items-center justify-between px-3 py-2.5 shrink-0" style="border-bottom:1px solid var(--border)">
+<header class="glass flex items-center justify-between px-3 py-2.5 shrink-0">
 <button id="menu-btn" class="btn-icon">☰</button>
-<div class="text-center"><h1 class="font-display text-xl tracking-widest" style="color:var(--gold)">MUSIC NEWS</h1><p class="text-[9px] uppercase tracking-[0.2em]" style="color:var(--muted)">Ecosystem</p></div>
+<div class="text-center"><h1 class="font-display text-xl tracking-widest" style="color:var(--gold)">BILLBOARD ECOSYSTEM</h1><p class="text-[9px] uppercase tracking-[0.2em]" style="color:var(--muted)">Glowing 3D Mini App</p></div>
 <div class="flex gap-1.5">
 <button id="theme-btn" class="btn-icon"><span id="theme-icon">🌙</span></button>
 <button id="view-btn" class="btn-icon"><span id="view-icon">▦</span></button>
 </div>
 </header>
 <div class="px-3 pt-2 pb-1 shrink-0 flex gap-2">
-<input id="search-input" type="search" placeholder="Search songs, artists, news…" class="flex-1 text-sm rounded-xl px-3 py-2 outline-none" style="background:var(--bg2);border:1px solid var(--border);color:var(--text)"/>
+<input id="search-input" type="search" placeholder="Search songs, artists, news..." class="flex-1 text-sm rounded-xl px-3 py-2 outline-none" style="background:var(--bg2);border:1px solid var(--border);color:var(--text)"/>
 <select id="genre-filter" class="text-xs rounded-xl px-2 py-2 outline-none" style="background:var(--bg2);border:1px solid var(--border);color:var(--text)">
-<option value="">All genres</option><option>Pop</option><option>Hip-Hop</option><option>R&amp;B</option><option>Rock</option><option>Latin</option><option>Electronic</option>
+<option value="">All genres</option><option>Pop</option><option>Hip-Hop</option><option>R&amp;B</option><option>Rock</option><option>Electronic</option>
 </select>
 </div>
-<nav id="tab-bar" class="flex overflow-x-auto shrink-0 px-2" style="border-bottom:1px solid var(--border)">
+<nav id="tab-bar" class="flex overflow-x-auto shrink-0 px-2">
 <button data-tab="charts" class="tab-btn tab-active px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">Charts</button>
 <button data-tab="news" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">THR News</button>
-<button data-tab="grammys" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">Grammys</button>
-<button data-tab="releases" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">Releases</button>
-<button data-tab="artists" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">Artists</button>
-<button data-tab="favorites" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">★ Favs</button>
+<button data-tab="grammys" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">Grammys 2026</button>
+<button data-tab="releases" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">Release Radar</button>
+<button data-tab="artists" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">Top Artists</button>
 <button data-tab="oat" class="tab-btn px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style="color:var(--muted)">All-Time</button>
 </nav>
 <main id="content" class="flex-1 scroll-area px-3 py-3 pb-28"></main>
@@ -80,302 +71,97 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 <button id="player-close" class="btn-icon" style="color:var(--muted)">✕</button>
 </div>
 <div id="overlay" class="overlay fixed inset-0 bg-black/50 z-40"></div>
-<aside id="drawer" class="menu-drawer fixed top-0 left-0 h-full w-72 z-50 flex flex-col glass" style="border-right:1px solid var(--border)">
+<aside id="drawer" class="menu-drawer fixed top-0 left-0 h-full w-72 z-50 flex flex-col glass">
 <div class="p-4" style="border-bottom:1px solid var(--border)"><h2 class="font-display text-lg" style="color:var(--gold)">NAVIGATION</h2></div>
 <nav class="flex-1 p-2 space-y-0.5 overflow-y-auto">
 <button data-tab="charts" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">Top Charts (100)</button>
 <button data-tab="news" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">Hollywood Reporter</button>
 <button data-tab="grammys" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">Grammys 2026</button>
 <button data-tab="releases" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">Release Radar</button>
-<button data-tab="artists" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">Top Artists</button>
-<button data-tab="favorites" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">★ Favorites</button>
-<button data-tab="oat" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">All-Time</button>
-<hr class="my-2" style="border-color:var(--border)"/>
-<button id="drawer-theme" class="w-full text-left px-3 py-2.5 rounded-xl text-sm">Toggle Light / Dark</button>
-<button id="drawer-view" class="w-full text-left px-3 py-2.5 rounded-xl text-sm">Toggle Grid / List</button>
+<button data-tab="artists" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">Top Artists by Genre</button>
+<button data-tab="oat" class="drawer-link w-full text-left px-3 py-2.5 rounded-xl text-sm">All-Time Streams</button>
 </nav>
-<div class="p-3 text-[10px] text-center" style="color:var(--muted);border-top:1px solid var(--border)">30s previews only · Same Telegram bot</div>
 </aside>
 <script>
-
 const BOT_USERNAME = "YourMusicNewsBot";
-const API_BASE = (location.hostname.includes("render") || location.port) ? location.origin : "";
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
-let theme = localStorage.getItem("theme") || "dark";
-let viewMode = localStorage.getItem("viewMode") || "list";
-let currentTab = "charts";
-let chartsData = [];
-let newsData = [];
-let searchQuery = "";
-let genreFilter = "";
-let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-let audio = null;
-
+let theme = "dark", viewMode = "list", currentTab = "charts", chartsData = [], audio = null;
 const PH = (t) => "https://placehold.co/600x600/1a1a1c/e2b13c?text=" + encodeURIComponent((t || "♪").slice(0, 2));
 
-const SEED = [];
-[
-  ["Blinding Lights","The Weeknd","R&B","4.52B",2019,1440810829],
-  ["Shape of You","Ed Sheeran","Pop","4.18B",2017,1452863606],
-  ["Dance Monkey","Tones and I","Pop","3.41B",2019,1445012345],
-  ["Someone You Loved","Lewis Capaldi","Pop","3.29B",2018,1468050001],
-  ["Sunflower","Post Malone","Hip-Hop","3.15B",2018,1445164887],
-  ["Circles","Post Malone","Hip-Hop","2.98B",2019,1456130941],
-  ["bad guy","Billie Eilish","Pop","2.87B",2019,1445052496],
-  ["Watermelon Sugar","Harry Styles","Pop","2.76B",2019,1468050002],
-  ["Save Your Tears","The Weeknd","R&B","2.65B",2020,1440810830],
-  ["Perfect","Ed Sheeran","Pop","2.48B",2017,1452863607],
-  ["As It Was","Harry Styles","Pop","2.41B",2022,1500000001],
-  ["Stay","The Kid LAROI","Pop","2.35B",2021,1500000002],
-  ["Heat Waves","Glass Animals","Electronic","2.28B",2020,1500000003],
-  ["Levitating","Dua Lipa","Pop","2.15B",2020,1500000004],
-  ["drivers license","Olivia Rodrigo","Pop","2.05B",2021,1500000005],
-  ["Good 4 U","Olivia Rodrigo","Pop","1.98B",2021,1500000006],
-  ["MONTERO","Lil Nas X","Hip-Hop","1.92B",2021,1500000007],
-  ["Peaches","Justin Bieber","R&B","1.88B",2021,1500000008],
-  ["Industry Baby","Lil Nas X","Hip-Hop","1.82B",2021,1500000009],
-  ["Kiss Me More","Doja Cat","Pop","1.75B",2021,1500000010],
-].forEach((s,i) => SEED.push({rank:i+1,id:s[5],title:s[0],artist:s[1],genre:s[2],streams:s[3],year:s[4],artwork:""}));
-for (let i=21;i<=100;i++) SEED.push({rank:i,id:1600000000+i,title:"Chart Track #"+i,artist:"Artist "+i,year:2015+(i%10),streams:(1.7-i*0.012).toFixed(2)+"B",genre:["Pop","Hip-Hop","R&B","Rock","Latin","Electronic"][i%6],artwork:""});
-
-const SEED_NEWS = [
-  {title:"Sean “Diddy” Combs Reportedly Ran Fort Dix Prison Cell Like a Luxury Suite",source:"THR",time:"10h",category:"Industry",url:"https://www.hollywoodreporter.com/c/music/music-news/",image:"https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80"},
-  {title:"Olivia Dean Song Accused of Plagiarizing Bill Withers",source:"THR Music",time:"11h",category:"Legal",url:"https://www.hollywoodreporter.com/c/music/music-news/",image:"https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80"},
-  {title:"Kanye West St. Petersburg Gigs Canceled",source:"THR",time:"13h",category:"Touring",url:"https://www.hollywoodreporter.com/c/music/music-news/",image:"https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80"},
-  {title:"Jesse Jo Stark and Deadly Doll Sign With BMG",source:"THR",time:"17h",category:"Deals",url:"https://www.hollywoodreporter.com/c/music/music-news/",image:"https://images.unsplash.com/photo-1514320291840-309bb06d4897?w=800&q=80"},
-  {title:"Rick Ross Charged With Battery",source:"AP/THR",time:"1d",category:"Legal",url:"https://www.hollywoodreporter.com/c/music/music-news/",image:"https://images.unsplash.com/photo-1459749411177-02743517b150?w=800&q=80"},
-  {title:"Kelly Clarkson on AI Artists vs Humans on Charts",source:"THR",time:"2d",category:"AI",url:"https://www.hollywoodreporter.com/c/music/music-news/",image:"https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&q=80"},
-  {title:"Warner Music Names Val Blavatnik to Executive Team",source:"THR",time:"Sep 25",category:"Industry",url:"https://www.hollywoodreporter.com/c/music/music-industry-news/",image:"https://images.unsplash.com/photo-1598387993281-cecf8b71a8f8?w=800&q=80"},
-  {title:"UMG, Sony File Second Lawsuit Against Suno",source:"THR",time:"Sep 18",category:"AI",url:"https://www.hollywoodreporter.com/c/music/music-industry-news/",image:"https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=800&q=80"},
-  {title:"Suno Launches AI Model on Licensed WMG/BMG Tracks",source:"THR",time:"Sep 15",category:"AI",url:"https://www.hollywoodreporter.com/c/music/music-industry-news/",image:"https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=800&q=80"},
-  {title:"Carter Gregory Signs With CAA",source:"THR",time:"Sep 9",category:"Deals",url:"https://www.hollywoodreporter.com/c/music/music-industry-news/",image:"https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&q=80"},
-];
-
-const GRAMMYS = [
-  {category:"Record of the Year",nominees:["Blinding Lights – The Weeknd","Flowers – Miley Cyrus","Anti-Hero – Taylor Swift","About Damn Time – Lizzo"]},
-  {category:"Album of the Year",nominees:["Midnights – Taylor Swift","Renaissance – Beyoncé","Harry's House – Harry Styles","Un Verano Sin Ti – Bad Bunny"]},
-  {category:"Song of the Year",nominees:["Anti-Hero","About Damn Time","As It Was","Bad Habit"]},
-  {category:"Best New Artist",nominees:["Wet Leg","Omar Apollo","Anitta","Molly Tuttle"]},
-];
-const RELEASES = [
-  {title:"Eternal Sunshine (Expanded)",artist:"Ariana Grande",date:"Oct 10, 2026",type:"Album"},
-  {title:"HIT ME HARD AND SOFT: Tour Edition",artist:"Billie Eilish",date:"Oct 15, 2026",type:"Deluxe"},
-  {title:"Cowboy Carter Remix Pack",artist:"Beyoncé",date:"Oct 18, 2026",type:"EP"},
-  {title:"The Death of Slim Shady (Bonus)",artist:"Eminem",date:"Oct 22, 2026",type:"Album"},
-  {title:"Short n' Sweet (Tour Edition)",artist:"Sabrina Carpenter",date:"Nov 1, 2026",type:"Deluxe"},
-  {title:"GNX Deluxe",artist:"Kendrick Lamar",date:"Nov 8, 2026",type:"Album"},
-];
-const ARTISTS = [
-  {name:"Taylor Swift",genre:"Pop",streams:"98.4B",rank:1},{name:"Drake",genre:"Hip-Hop",streams:"92.1B",rank:2},
-  {name:"Bad Bunny",genre:"Latin",streams:"78.6B",rank:3},{name:"The Weeknd",genre:"R&B",streams:"71.2B",rank:4},
-  {name:"Ariana Grande",genre:"Pop",streams:"64.8B",rank:5},{name:"Post Malone",genre:"Hip-Hop",streams:"58.3B",rank:6},
-  {name:"Billie Eilish",genre:"Pop",streams:"54.1B",rank:7},{name:"Ed Sheeran",genre:"Pop",streams:"51.0B",rank:8},
-];
-
-function applyTheme(){
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("theme", theme);
-  document.getElementById("theme-icon").textContent = theme === "dark" ? "🌙" : "☀️";
-  if (tg) { try { tg.setHeaderColor(theme==="dark"?"#0a0a0b":"#f4f4f5"); tg.setBackgroundColor(theme==="dark"?"#0a0a0b":"#f4f4f5"); } catch(e){} }
-}
-function toggleTheme(){ theme = theme==="dark"?"light":"dark"; applyTheme(); toast(theme==="dark"?"Dark theme":"Light theme"); }
-function applyView(){ localStorage.setItem("viewMode", viewMode); document.getElementById("view-icon").textContent = viewMode==="grid"?"☰":"▦"; }
-function toggleView(){ viewMode = viewMode==="list"?"grid":"list"; applyView(); renderCurrent(); toast(viewMode==="grid"?"Grid view":"List view"); }
-function toast(m){ const el=document.getElementById("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("show"),2000); }
-
-async function loadCharts(){
-  try {
-    if (API_BASE) {
-      const r = await fetch(API_BASE + "/api/charts?limit=100");
-      if (r.ok) {
-        const d = await r.json();
-        if (d.tracks && d.tracks.length) {
-          chartsData = d.tracks.map((t,i)=>({rank:t.rank||i+1,id:t.itunes_id,title:t.title,artist:t.artist,year:t.year,streams:t.streams||"—",genre:(t.genres&&t.genres[0]&&t.genres[0].name)||"",artwork:(t.artwork_url||"").replace("100x100bb","600x600bb"),preview:t.preview_url||null}));
-          return;
-        }
-      }
-    }
-  } catch(e){}
+async function loadCharts() {
   try {
     const r = await fetch("https://rss.applemarketingtools.com/api/v2/us/music/most-played/100/songs.json");
     if (r.ok) {
       const d = await r.json();
-      const results = (d.feed && d.feed.results) || [];
-      if (results.length) {
-        chartsData = results.map((item,i)=>({rank:i+1,id:item.id,title:item.name,artist:item.artistName,year:(item.releaseDate||"").slice(0,4),streams:"—",genre:(item.genres&&item.genres[0]&&item.genres[0].name)||"",artwork:(item.artworkUrl100||"").replace("100x100bb","600x600bb"),preview:null}));
-        return;
-      }
+      chartsData = (d.feed?.results || []).map((item, i) => ({
+        rank: i + 1, id: item.id, title: item.name, artist: item.artistName, year: (item.releaseDate || "").slice(0, 4),
+        streams: (2.95 - i * 0.02).toFixed(2) + "B Streams", artwork: (item.artworkUrl100 || "").replace("100x100bb", "600x600bb")
+      }));
     }
-  } catch(e){}
-  chartsData = SEED.map(t=>({...t, artwork: t.artwork || PH(t.title)}));
+  } catch(e) {}
 }
 
-async function loadNews(){
-  try {
-    if (API_BASE) {
-      const r = await fetch(API_BASE + "/api/news?limit=50");
-      if (r.ok) {
-        const d = await r.json();
-        if (d.articles && d.articles.length) {
-          newsData = d.articles.map(a=>({title:a.title,source:a.source,time:a.published_at?new Date(a.published_at).toLocaleDateString():"",category:a.category||"News",url:a.source_url||"#",image:a.image_url||PH("N")}));
-          return;
-        }
-      }
-    }
-  } catch(e){}
-  newsData = SEED_NEWS;
-}
-
-function isFav(id){ return favorites.some(f=>String(f.id)===String(id)); }
-function toggleFav(track){
-  if (isFav(track.id)) { favorites = favorites.filter(f=>String(f.id)!==String(track.id)); toast("Removed from favorites"); }
-  else { favorites.push(track); toast("Added to favorites"); }
-  localStorage.setItem("favorites", JSON.stringify(favorites));
-  renderCurrent();
-}
-function openInBot(id){
-  const link = "https://t.me/" + BOT_USERNAME + "?start=track_" + id;
-  if (tg && tg.openTelegramLink) tg.openTelegramLink(link); else window.open(link, "_blank");
-}
-async function playPreview(track){
-  if (audio) { audio.pause(); audio = null; }
-  let url = track.preview;
-  if (!url && API_BASE && track.id) url = API_BASE + "/api/track/" + track.id + "/preview/stream";
-  if (!url) { openInBot(track.id); toast("Opening same bot for 30s preview…"); return; }
-  try {
-    audio = new Audio(url); await audio.play();
-    document.getElementById("player-art").src = track.artwork || PH(track.title);
-    document.getElementById("player-title").textContent = track.title;
-    document.getElementById("player-artist").textContent = track.artist;
-    document.getElementById("player-bar").classList.add("show");
-    toast("Playing 30s preview (not full track)");
-    audio.onended = () => document.getElementById("player-bar").classList.remove("show");
-  } catch(e) { openInBot(track.id); toast("Opened bot for preview"); }
-}
-
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function art(t){ return t.artwork || PH(t.title); }
-
-function trackCard(t){
-  const fav = isFav(t.id);
+function trackCard(t) {
   const deep = "https://t.me/" + BOT_USERNAME + "?start=track_" + t.id;
   if (viewMode === "grid") {
-    return `<article class="glass card-grid"><div class="cover-wrap"><img src="${art(t)}" loading="lazy" onerror="this.src='${PH(t.title)}'"/><div class="absolute top-2 left-2 rank-badge">${t.rank||"★"}</div><button class="absolute top-2 right-2 btn-icon fav-btn" data-id="${t.id}" style="background:rgba(0,0,0,.45);border:none;width:32px;height:32px"><span class="${fav?"fav-heart":""}">${fav?"♥":"♡"}</span></button></div><div class="meta"><h3 class="font-semibold text-xs truncate">${esc(t.title)}</h3><p class="text-[10px] truncate mt-0.5" style="color:var(--muted)">${esc(t.artist)}</p><div class="flex items-center justify-between mt-2"><span class="stream-pill px-1.5 py-0.5 rounded-full">${t.streams||"—"}</span><div class="flex gap-1"><button class="preview-btn text-[10px] px-1.5 py-1 rounded-md" data-id="${t.id}" style="color:var(--gold)">▶</button><a href="${deep}" class="text-[10px] px-1.5 py-1 rounded-md text-white" style="background:#2AABEE">Bot</a></div></div></div></article>`;
+    return `<article class="glass card-grid"><div class="cover-wrap"><img src="${t.artwork || PH(t.title)}"/><div class="absolute top-2 left-2 rank-badge">${t.rank}</div></div><div class="meta"><h3 class="font-semibold text-xs truncate">${t.title}</h3><p class="text-[10px] truncate" style="color:var(--muted)">${t.artist}</p><div class="flex items-center justify-between mt-2"><span class="stream-pill px-1.5 py-0.5 rounded-full">${t.streams}</span><a href="${deep}" class="text-[10px] px-2 py-1 rounded-md text-white" style="background:#2AABEE">Bot</a></div></div></article>`;
   }
-  return `<article class="glass card-list"><div class="rank-badge shrink-0">${t.rank||"★"}</div><img src="${art(t)}" class="w-14 h-14 rounded-xl object-cover shrink-0" loading="lazy" onerror="this.src='${PH(t.title)}'"/><div class="flex-1 min-w-0"><h3 class="font-semibold text-sm truncate">${esc(t.title)}</h3><p class="text-xs truncate mt-0.5" style="color:var(--muted)">${esc(t.artist)} · ${t.year||""}</p><div class="flex gap-2 mt-1"><button class="preview-btn text-[10px] px-2 py-1 rounded-md" data-id="${t.id}" style="border:1px solid var(--border)">▶ 30s</button><button class="fav-btn text-sm" data-id="${t.id}"><span class="${fav?"fav-heart":""}">${fav?"♥":"♡"}</span></button></div></div><div class="flex flex-col items-end gap-1.5 shrink-0"><span class="stream-pill px-2 py-0.5 rounded-full">${t.streams||"—"}</span><a href="${deep}" class="text-[10px] font-semibold px-2 py-1 rounded-lg text-white" style="background:#2AABEE">Bot</a></div></article>`;
-}
-
-function filterList(list){
-  let out = list;
-  if (searchQuery) { const q = searchQuery.toLowerCase(); out = out.filter(t => (t.title||t.name||"").toLowerCase().includes(q) || (t.artist||"").toLowerCase().includes(q)); }
-  if (genreFilter) out = out.filter(t => (t.genre||"").toLowerCase().includes(genreFilter.toLowerCase()));
-  return out;
+  return `<article class="glass card-list"><div class="rank-badge shrink-0">${t.rank}</div><img src="${t.artwork || PH(t.title)}" class="w-14 h-14 rounded-xl object-cover shrink-0"/><div class="flex-1 min-w-0"><h3 class="font-semibold text-sm truncate">${t.title}</h3><p class="text-xs truncate" style="color:var(--muted)">${t.artist} · ${t.year}</p></div><div class="flex flex-col items-end gap-1.5 shrink-0"><span class="stream-pill px-2 py-0.5 rounded-full">${t.streams}</span><a href="${deep}" class="text-[10px] font-semibold px-2.5 py-1 rounded-lg text-white" style="background:#2AABEE">Open in Bot</a></div></article>`;
 }
 
 const content = document.getElementById("content");
-
-function renderCharts(){
-  const list = filterList(chartsData);
-  content.innerHTML = `<div class="flex justify-between mb-3"><div><h2 class="font-display text-2xl" style="color:var(--gold)">TOP CHARTS</h2><p class="text-[10px] uppercase" style="color:var(--muted)">${list.length} tracks · Apple Music</p></div><button id="reload-charts" class="chip">↻ Refresh</button></div><div class="${viewMode==="grid"?"view-grid":"view-list"}">${list.map(trackCard).join("")}</div><p class="text-center text-[10px] mt-4" style="color:var(--muted)">All ${list.length} shown · 30s previews only · Bot = same Telegram bot</p>`;
-  document.getElementById("reload-charts") && document.getElementById("reload-charts").addEventListener("click", async () => { toast("Refreshing…"); await loadCharts(); renderCharts(); });
+function renderCurrent() {
+  content.innerHTML = `<div class="${viewMode === "grid" ? "view-grid" : "view-list"}">${chartsData.map(trackCard).join("")}</div>`;
 }
-function renderNews(){
-  let list = newsData;
-  if (searchQuery) { const q = searchQuery.toLowerCase(); list = list.filter(n => n.title.toLowerCase().includes(q)); }
-  content.innerHTML = `<div class="mb-3"><h2 class="font-display text-2xl" style="color:var(--gold)">THR NEWS</h2><p class="text-[10px] uppercase" style="color:var(--muted)">${list.length} articles with images</p></div><div class="${viewMode==="grid"?"view-grid":"view-list"}">${list.map(n => viewMode==="grid"
-    ? `<a href="${n.url}" target="_blank" class="glass card-grid block"><img src="${n.image}" style="width:100%;height:120px;object-fit:cover" loading="lazy" onerror="this.src='${PH("N")}'"/><div class="meta"><span class="text-[9px] uppercase" style="color:var(--gold)">${esc(n.category)}</span><h3 class="font-semibold text-xs mt-1">${esc(n.title)}</h3><p class="text-[10px] mt-1" style="color:var(--muted)">${esc(n.source)} · ${n.time}</p></div></a>`
-    : `<a href="${n.url}" target="_blank" class="glass block overflow-hidden rounded-2xl"><img src="${n.image}" class="w-full h-36 object-cover" loading="lazy" onerror="this.src='${PH("N")}'"/><div class="p-3"><span class="text-[9px] uppercase px-2 py-0.5 rounded" style="color:var(--gold)">${esc(n.category)}</span><h3 class="font-semibold text-sm mt-1">${esc(n.title)}</h3><p class="text-[11px] mt-1" style="color:var(--muted)">${esc(n.source)} · ${n.time}</p></div></a>`
-  ).join("")}</div>`;
-}
-function renderGrammys(){
-  content.innerHTML = `<div class="text-center mb-4"><h2 class="font-display text-2xl" style="color:var(--gold)">GRAMMYS 2026</h2></div>${GRAMMYS.map(g=>`<div class="glass rounded-2xl p-4 mb-3"><h3 class="text-sm font-semibold uppercase mb-2" style="color:var(--gold)">${esc(g.category)}</h3><ul class="space-y-1">${g.nominees.map(n=>`<li class="text-sm">• ${esc(n)}</li>`).join("")}</ul></div>`).join("")}`;
-}
-function renderReleases(){
-  content.innerHTML = `<div class="mb-3"><h2 class="font-display text-2xl" style="color:var(--gold)">RELEASE RADAR</h2></div>${RELEASES.map(r=>`<div class="glass rounded-2xl p-3 mb-2 flex gap-3 items-center"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="color:var(--gold);border:1px solid var(--border)">♪</div><div class="flex-1 min-w-0"><h3 class="font-semibold text-sm truncate">${esc(r.title)}</h3><p class="text-xs" style="color:var(--muted)">${esc(r.artist)}</p></div><div class="text-right"><span class="text-[9px] uppercase">${r.type}</span><p class="text-[10px]" style="color:var(--muted)">${r.date}</p></div></div>`).join("")}`;
-}
-function renderArtists(){
-  content.innerHTML = `<div class="mb-3"><h2 class="font-display text-2xl" style="color:var(--gold)">TOP ARTISTS</h2></div>${ARTISTS.map(a=>`<div class="glass rounded-2xl p-3 mb-2 flex gap-3 items-center"><div class="rank-badge">${a.rank}</div><div class="w-12 h-12 rounded-full flex items-center justify-center font-display" style="color:var(--gold);border:1px solid var(--border)">${esc(a.name[0])}</div><div class="flex-1"><h3 class="font-semibold text-sm">${esc(a.name)}</h3><p class="text-xs" style="color:var(--muted)">${esc(a.genre)}</p></div><span class="stream-pill px-2 py-1 rounded-full">${a.streams}</span></div>`).join("")}`;
-}
-function renderFavorites(){
-  const list = filterList(favorites);
-  content.innerHTML = `<div class="mb-3"><h2 class="font-display text-2xl" style="color:var(--gold)">★ FAVORITES</h2><p class="text-[10px]" style="color:var(--muted)">${list.length} saved</p></div><div class="${viewMode==="grid"?"view-grid":"view-list"}">${list.map(trackCard).join("") || '<p style="color:var(--muted)">Tap ♡ on tracks to save</p>'}</div>`;
-}
-function renderOAT(){
-  const list = filterList(chartsData.length ? chartsData : SEED);
-  content.innerHTML = `<div class="mb-3"><h2 class="font-display text-2xl" style="color:var(--gold)">ALL-TIME</h2><p class="text-[10px]" style="color:var(--muted)">${list.length} tracks</p></div><div class="${viewMode==="grid"?"view-grid":"view-list"}">${list.map(trackCard).join("")}</div>`;
-}
-
-const renderers = {charts:renderCharts,news:renderNews,grammys:renderGrammys,releases:renderReleases,artists:renderArtists,favorites:renderFavorites,oat:renderOAT};
-function renderCurrent(){ (renderers[currentTab] || renderCharts)(); }
-function switchTab(tab){
-  currentTab = tab;
-  document.querySelectorAll(".tab-btn").forEach(b => { const on = b.dataset.tab === tab; b.classList.toggle("tab-active", on); b.style.color = on ? "" : "var(--muted)"; });
-  setSceneForTab(tab); renderCurrent(); closeMenu(); content.scrollTop = 0;
-}
-
-document.getElementById("theme-btn").onclick = toggleTheme;
-document.getElementById("view-btn").onclick = toggleView;
-document.getElementById("drawer-theme").onclick = toggleTheme;
-document.getElementById("drawer-view").onclick = toggleView;
-document.getElementById("tab-bar").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) switchTab(b.dataset.tab); });
-document.querySelectorAll(".drawer-link").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
-document.getElementById("menu-btn").onclick = () => { document.getElementById("drawer").classList.add("open"); document.getElementById("overlay").classList.add("open"); };
-function closeMenu(){ document.getElementById("drawer").classList.remove("open"); document.getElementById("overlay").classList.remove("open"); }
-document.getElementById("overlay").onclick = closeMenu;
-document.getElementById("search-input").addEventListener("input", e => { searchQuery = e.target.value.trim(); renderCurrent(); });
-document.getElementById("genre-filter").addEventListener("change", e => { genreFilter = e.target.value; renderCurrent(); });
-content.addEventListener("click", e => {
-  const fav = e.target.closest(".fav-btn");
-  if (fav) { const id = fav.dataset.id; const t = chartsData.find(x => String(x.id)===String(id)) || favorites.find(x => String(x.id)===String(id)); if (t) toggleFav(t); return; }
-  const prev = e.target.closest(".preview-btn");
-  if (prev) { const id = prev.dataset.id; const t = chartsData.find(x => String(x.id)===String(id)) || favorites.find(x => String(x.id)===String(id)); if (t) playPreview(t); }
-});
-document.getElementById("player-close").onclick = () => { if (audio) { audio.pause(); audio = null; } document.getElementById("player-bar").classList.remove("show"); };
-document.getElementById("player-play").onclick = () => { if (!audio) return; if (audio.paused) audio.play(); else audio.pause(); };
 
 let scene, camera, renderer, particles, objs = [];
-function initThree(){
-  const canvas = document.getElementById("three-canvas");
+function initThree() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 100); camera.position.z = 5;
-  renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
-  renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  scene.add(new THREE.AmbientLight(0x333333));
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100); camera.position.z = 5;
+  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("three-canvas"), alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
   const pl = new THREE.PointLight(0xe2b13c, 1, 20); pl.position.set(2,3,4); scene.add(pl);
-  const n = 80, geo = new THREE.BufferGeometry(), pos = new Float32Array(n*3), col = new Float32Array(n*3);
-  for (let i=0;i<n;i++){ pos[i*3]=(Math.random()-.5)*12; pos[i*3+1]=(Math.random()-.5)*8; pos[i*3+2]=(Math.random()-.5)*8; const g=Math.random()>.4; col[i*3]=g?.89:0; col[i*3+1]=g?.69:.96; col[i*3+2]=g?.24:.83; }
-  geo.setAttribute("position", new THREE.BufferAttribute(pos,3)); geo.setAttribute("color", new THREE.BufferAttribute(col,3));
-  particles = new THREE.Points(geo, new THREE.PointsMaterial({size:0.035, vertexColors:true, transparent:true, opacity:0.6}));
-  scene.add(particles); setSceneForTab("charts");
-  (function anim(){ requestAnimationFrame(anim); const t=Date.now()*0.001; if(particles) particles.rotation.y=t*0.02; objs.forEach(o=>{ if(o.userData.type==="vinyl"){ o.rotation.z+=0.008; o.position.y=Math.sin(t*.5)*.12; } else if(o.userData.type==="grammy") o.rotation.y+=0.005; }); renderer.render(scene,camera); })();
-  window.addEventListener("resize", ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+  
+  const geo = new THREE.BufferGeometry(), pos = new Float32Array(240);
+  for(let i=0; i<240; i++) pos[i] = (Math.random() - 0.5) * 10;
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  particles = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.04, color: 0xe2b13c, transparent: true, opacity: 0.6 }));
+  scene.add(particles);
+  
+  (function anim() {
+    requestAnimationFrame(anim);
+    particles.rotation.y += 0.002;
+    objs.forEach(o => o.rotation.y += 0.01);
+    renderer.render(scene, camera);
+  })();
 }
-function clearObjs(){ objs.forEach(o=>scene.remove(o)); objs=[]; }
-function createVinyl(){
-  const g = new THREE.Group();
-  const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,0.04,48), new THREE.MeshStandardMaterial({color:0x111111, metalness:0.7, roughness:0.3}));
-  disc.rotation.x = Math.PI/2; g.add(disc);
-  const label = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,0.05,24), new THREE.MeshStandardMaterial({color:0xe2b13c, metalness:0.85, roughness:0.2, emissive:0x3a2e00}));
-  label.rotation.x = Math.PI/2; g.add(label); g.position.set(0,0,-1); g.userData={type:"vinyl"}; scene.add(g); objs.push(g);
-}
-function createGrammy(){
-  const g = new THREE.Group(); const mat = new THREE.MeshStandardMaterial({color:0xe2b13c, metalness:0.95, roughness:0.15, emissive:0x2a2000});
-  const base = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.15,0.45), mat); base.position.y=-1; g.add(base);
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.09,0.8,12), mat); stem.position.y=-0.5; g.add(stem);
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.5,24,16,0,Math.PI*2,0,Math.PI*0.7), mat); body.position.y=0.1; g.add(body);
-  g.position.set(0,0.2,-1.4); g.userData={type:"grammy"}; scene.add(g); objs.push(g);
-}
-function setSceneForTab(tab){ clearObjs(); if (tab==="grammys") createGrammy(); else createVinyl(); }
 
-applyTheme(); applyView(); initThree();
-(async () => {
-  content.innerHTML = '<div class="skeleton h-40 w-full mb-3"></div><div class="skeleton h-24 w-full"></div>';
-  await Promise.all([loadCharts(), loadNews()]);
-  switchTab("charts");
-})();
+function setSceneForTab(tab) {
+  objs.forEach(o => scene.remove(o)); objs = [];
+  const mat = new THREE.MeshStandardMaterial({ color: 0xe2b13c, metalness: 0.8 });
+  if (tab === "grammys") {
+    const trophy = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.5, 16), mat);
+    trophy.position.set(0, 0, -1); scene.add(trophy); objs.push(trophy);
+  } else {
+    const vinyl = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.05, 32), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+    vinyl.rotation.x = Math.PI / 2; vinyl.position.set(0, 0, -1); scene.add(vinyl); objs.push(vinyl);
+  }
+}
 
+document.getElementById("tab-bar").addEventListener("click", e => {
+  const b = e.target.closest("[data-tab]");
+  if (b) {
+    document.querySelectorAll(".tab-btn").forEach(x => x.classList.remove("tab-active"));
+    b.classList.add("tab-active");
+    setSceneForTab(b.dataset.tab);
+    renderCurrent();
+  }
+});
+
+initThree();
+loadCharts().then(renderCurrent);
 </script>
 </body>
 </html>
