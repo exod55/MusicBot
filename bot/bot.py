@@ -39,24 +39,54 @@ if SUPABASE_URL and SUPABASE_KEY:
         logger.error(f"Supabase init error: {e}")
 
 # --------------------------------------------------------------------------
-# Render Port-Binding Server (Ensures Render Free Web Service NEVER times out)
+# Unified Server: Serves index.html to Browsers + Satisfies Render Health Check
 # --------------------------------------------------------------------------
-class HealthCheckHandler(BaseHTTPRequestHandler):
+class UnifiedAppHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"OK - Music Bot Engine Running")
+        # 1. Health check route
+        if self.path == "/health":
+            self.send_response(200)
+            self.send_header("Content-type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"OK - Bot Engine Running")
+            return
+
+        # 2. Serve the 3D Billboard Mini App (index.html)
+        candidate_paths = [
+            os.path.join(os.path.dirname(__file__), "..", "web", "index.html"),
+            os.path.join(os.path.dirname(__file__), "web", "index.html"),
+            os.path.join(os.path.dirname(__file__), "index.html"),
+            "web/index.html",
+            "index.html"
+        ]
+        
+        html_bytes = None
+        for path in candidate_paths:
+            if os.path.exists(path):
+                with open(path, "rb") as f:
+                    html_bytes = f.read()
+                break
+
+        if html_bytes:
+            self.send_response(200)
+            self.send_header("Content-type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(html_bytes)
+        else:
+            self.send_response(200)
+            self.send_header("Content-type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"Bot is live. Please ensure web/index.html exists in your repo.")
+
+    def log_message(self, format, *args):
+        # Silence routine HTTP requests in terminal logs
+        return
 
 def start_health_server():
     port = int(os.environ.get("PORT", 8080))
-    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
-    logger.info(f"Render health check server bound to port {port}")
+    server = HTTPServer(("0.0.0.0", port), UnifiedAppHandler)
+    logger.info(f"Frontend & Health server running on port {port}")
     server.serve_forever()
-
-# --------------------------------------------------------------------------
-# Metadata Extraction Engine
-# --------------------------------------------------------------------------
 async def fetch_itunes_track_metadata(track_id: str) -> dict:
     url = f"https://itunes.apple.com/lookup?id={track_id}&entity=song"
     try:
