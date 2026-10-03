@@ -35,6 +35,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .player-bar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--card);backdrop-filter:blur(20px);border-top:1px solid var(--border);transform:translateY(100%);transition:transform .3s}
 .player-bar.show{transform:translateY(0)}
 .font-display{font-family:"Bebas Neue",sans-serif}
+.src-btn{font-size:9px;font-weight:600;padding:3px 8px;border-radius:6px;text-decoration:none;display:inline-block;letter-spacing:0.02em}
 </style>
 </head>
 <body>
@@ -125,12 +126,33 @@ async function loadCharts() {
   } catch(e) {}
 }
 
+function sourceLinks(t) {
+  const q = encodeURIComponent((t.artist || "") + " " + (t.title || ""));
+  const itunesId = t.id || t.itunes_id || "";
+  return {
+    itunes: itunesId ? ("https://music.apple.com/us/song/" + itunesId) : ("https://music.apple.com/us/search?term=" + q),
+    apple: itunesId ? ("https://music.apple.com/us/song/" + itunesId) : ("https://music.apple.com/us/search?term=" + q),
+    spotify: "https://open.spotify.com/search/" + q,
+    bot: "https://t.me/" + BOT_USERNAME + "?start=track_" + itunesId
+  };
+}
+
+function sourceButtons(t) {
+  const s = sourceLinks(t);
+  return `<div class="flex flex-wrap gap-1 mt-1.5">
+    <a href="${s.spotify}" target="_blank" rel="noopener" class="src-btn" title="Spotify search" style="background:#1DB954;color:#fff">Spotify</a>
+    <a href="${s.apple}" target="_blank" rel="noopener" class="src-btn" title="Apple Music" style="background:#fc3c44;color:#fff">Apple</a>
+    <a href="${s.itunes}" target="_blank" rel="noopener" class="src-btn" title="iTunes / Apple metadata" style="background:#5555ff;color:#fff">iTunes</a>
+    <a href="${s.bot}" class="src-btn" title="Bot metadata card" style="background:#2AABEE;color:#fff">Bot</a>
+  </div>`;
+}
+
 function trackCard(t) {
-  const deep = "https://t.me/" + BOT_USERNAME + "?start=track_" + t.id;
+  const s = sourceLinks(t);
   if (viewMode === "grid") {
-    return `<article class="glass card-grid"><div class="cover-wrap"><img src="${t.artwork || PH(t.title)}"/><div class="absolute top-2 left-2 rank-badge">${t.rank}</div></div><div class="meta"><h3 class="font-semibold text-xs truncate">${t.title}</h3><p class="text-[10px] truncate" style="color:var(--muted)">${t.artist}</p><div class="flex items-center justify-between mt-2"><span class="stream-pill px-1.5 py-0.5 rounded-full">${t.streams}</span><a href="${deep}" class="text-[10px] px-2 py-1 rounded-md text-white" style="background:#2AABEE">Bot</a></div></div></article>`;
+    return `<article class="glass card-grid"><div class="cover-wrap"><img src="${t.artwork || PH(t.title)}" loading="lazy" onerror="this.src='${PH(t.title)}'"/><div class="absolute top-2 left-2 rank-badge">${t.rank}</div></div><div class="meta"><h3 class="font-semibold text-xs truncate">${t.title}</h3><p class="text-[10px] truncate" style="color:var(--muted)">${t.artist}</p><span class="stream-pill px-1.5 py-0.5 rounded-full inline-block mt-1">${t.streams || "—"}</span>${sourceButtons(t)}</div></article>`;
   }
-  return `<article class="glass card-list"><div class="rank-badge shrink-0">${t.rank}</div><img src="${t.artwork || PH(t.title)}" class="w-14 h-14 rounded-xl object-cover shrink-0"/><div class="flex-1 min-w-0"><h3 class="font-semibold text-sm truncate">${t.title}</h3><p class="text-xs truncate" style="color:var(--muted)">${t.artist} · ${t.year}</p></div><div class="flex flex-col items-end gap-1.5 shrink-0"><span class="stream-pill px-2 py-0.5 rounded-full">${t.streams}</span><a href="${deep}" class="text-[10px] font-semibold px-2.5 py-1 rounded-lg text-white" style="background:#2AABEE">Open in Bot</a></div></article>`;
+  return `<article class="glass card-list"><div class="rank-badge shrink-0">${t.rank}</div><img src="${t.artwork || PH(t.title)}" class="w-14 h-14 rounded-xl object-cover shrink-0" loading="lazy" onerror="this.src='${PH(t.title)}'"/><div class="flex-1 min-w-0"><h3 class="font-semibold text-sm truncate">${t.title}</h3><p class="text-xs truncate" style="color:var(--muted)">${t.artist} · ${t.year || ""}</p>${sourceButtons(t)}</div><div class="flex flex-col items-end gap-1.5 shrink-0"><span class="stream-pill px-2 py-0.5 rounded-full">${t.streams || "—"}</span></div></article>`;
 }
 
 const content = document.getElementById("content");

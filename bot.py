@@ -85,6 +85,15 @@ def format_track_caption(item: dict[str, Any]) -> str:
         lines.append(f"⚠️ {explicit}")
     if preview:
         lines.append(f'\n🎧 <a href="{preview}">30-Second Audio Preview</a>')
+
+    # Official catalog links (metadata only — not full downloads)
+    title = item.get("trackName") or ""
+    artist = item.get("artistName") or ""
+    q = f"{artist} {title}".strip().replace(" ", "%20")
+    track_id = item.get("trackId") or ""
+    apple = item.get("trackViewUrl") or (f"https://music.apple.com/us/song/{track_id}" if track_id else f"https://music.apple.com/us/search?term={q}")
+    spotify = f"https://open.spotify.com/search/{q}"
+    lines.append(f'\n🔗 <a href="{apple}">Apple Music</a> · <a href="{spotify}">Spotify</a> · <a href="https://music.apple.com/us/search?term={q}">iTunes Search</a>')
     return "\n".join(lines)
 
 
@@ -125,7 +134,19 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         caption = format_track_caption(item)
         track_url = item.get("trackViewUrl")
 
-        keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("View on Apple Music", url=track_url)]]) if track_url else None
+        title = item.get("trackName") or ""
+        artist = item.get("artistName") or ""
+        q = f"{artist} {title}".strip().replace(" ", "%20")
+        apple_url = track_url or f"https://music.apple.com/us/search?term={q}"
+        spotify_url = f"https://open.spotify.com/search/{q}"
+        itunes_url = f"https://music.apple.com/us/search?term={q}"
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("Spotify", url=spotify_url),
+                InlineKeyboardButton("Apple Music", url=apple_url),
+                InlineKeyboardButton("iTunes", url=itunes_url),
+            ]
+        ])
 
         try:
             await status.delete()
