@@ -137,8 +137,15 @@ def health():
 
 @app.get("/")
 def root():
+    # Prefer Mini App when opened in a browser; API clients use /health or /api/*
+    accept = request.headers.get("Accept", "")
+    if "text/html" in accept:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+        if os.path.isfile(path):
+            return Response(open(path, "r", encoding="utf-8").read(), mimetype="text/html")
     return jsonify({
         "service": "Music News Ecosystem API (Flask)",
+        "miniapp": "/app",
         "health": "/health",
         "important": (
             "This backend verifies and streams 30-second iTunes previews only. "
@@ -382,6 +389,27 @@ def db_tables():
             out[t] = {"ok": False, "error": str(exc)[:200]}
     return jsonify(out)
 
+
+
+
+# ── Serve Mini App (same service) ─────────────────────────
+STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
+
+@app.get("/app")
+@app.get("/app/")
+@app.get("/miniapp")
+@app.get("/miniapp/")
+def serve_miniapp():
+    """Telegram Mini App — same Render service as the API."""
+    path = os.path.join(STATIC_DIR, "index.html")
+    if not os.path.isfile(path):
+        return jsonify({"error": "index.html not found next to backend.py"}), 404
+    return Response(open(path, "r", encoding="utf-8").read(), mimetype="text/html")
+
+
+@app.get("/favicon.ico")
+def favicon():
+    return "", 204
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "8000"))
