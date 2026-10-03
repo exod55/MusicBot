@@ -1,0 +1,16 @@
+services:
+  - type: worker
+    name: music-telegram-bot
+    env: docker
+    dockerfilePath: bot/Dockerfile
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: BOT_USERNAME
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: BACKUP_CHANNEL_ID
+        sync: false
