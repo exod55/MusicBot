@@ -91,6 +91,28 @@ let theme = "dark", viewMode = "list", currentTab = "charts", chartsData = [], a
 const PH = (t) => "https://placehold.co/600x600/1a1a1c/e2b13c?text=" + encodeURIComponent((t || "♪").slice(0, 2));
 
 async function loadCharts() {
+  const API = (location.hostname.includes("onrender.com") || location.port) ? location.origin : "";
+  try {
+    if (API) {
+      const r = await fetch(API + "/api/charts?limit=100");
+      if (r.ok) {
+        const d = await r.json();
+        const list = d.tracks || (d.feed && d.feed.results) || (Array.isArray(d) ? d : []);
+        if (list.length) {
+          chartsData = list.map((item, i) => ({
+            rank: item.rank || i + 1,
+            id: item.itunes_id || item.id,
+            title: item.title || item.name,
+            artist: item.artist || item.artistName,
+            year: item.year || (item.releaseDate || "").slice(0, 4),
+            streams: item.streams || ((2.95 - i * 0.02).toFixed(2) + "B Streams"),
+            artwork: (item.artwork_url || item.artworkUrl100 || "").replace("100x100bb", "600x600bb")
+          }));
+          return;
+        }
+      }
+    }
+  } catch(e) {}
   try {
     const r = await fetch("https://rss.applemarketingtools.com/api/v2/us/music/most-played/100/songs.json");
     if (r.ok) {
