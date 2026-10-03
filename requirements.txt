@@ -1,5 +1,5 @@
-# NO pydantic / NO Rust — safe on Render
-# FORCE Python 3.12 in Render dashboard (see steps below)
+# Safe pins — let supabase pull its own sub-deps (storage3, gotrue, etc.)
+# Python 3.12 required on Render
 
 flask==3.0.3
 flask-cors==4.0.1
@@ -12,10 +12,5 @@ python-telegram-bot==21.6
 apscheduler==3.10.4
 pytz==2024.2
 
-# Supabase (pin set that has wheels)
+# Supabase — only pin the main package; sub-deps resolve automatically
 supabase==2.7.4
-gotrue==2.9.1
-postgrest==0.16.11
-realtime==2.0.2
-storage3==0.8.1
-supafunc==0.6.1
